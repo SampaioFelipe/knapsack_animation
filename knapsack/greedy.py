@@ -1,7 +1,20 @@
 from knapsack.mergesort import mergesort
-from knapsack import drawer
+from knapsack.definitions import DELAY
+import time
+
+
+def anima_preparacao(V):
+    i = 0
+    for item in V:
+        item.set_linha(2)
+        i = i + 1
+
+        time.sleep(DELAY)
+
 
 def greedy_knapsack(V, C):
+    anima_preparacao(V)
+
     ordenado = mergesort(V)
 
     peso_total = ordenado[0].peso
