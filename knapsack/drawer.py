@@ -14,7 +14,7 @@ class Animation(threading.Thread):
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
 
-        self.walle = pygame.image.load("/home/felipe/PycharmProjects/projeto_paa/assets/wall-e.png")
+        self.walle = pygame.image.load("/home/gabriela/PycharmProjects/knapsack_animation/assets/wall-e.png")
 
         self.WIN_WIDTH = pygame.display.Info().current_w
         self.WIN_HEIGHT = pygame.display.Info().current_h - 75

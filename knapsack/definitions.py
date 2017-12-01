@@ -48,7 +48,7 @@ class Item(Objeto):
 
         self.valor = valor
         self.peso = peso
-        self.dens = valor / peso  # heurística
+        self.dens = valor / peso
         self.color = WHITE
 
         self.text_valor = FONT.render("V:" + str(self.valor), False, BLUE)

@@ -1,5 +1,6 @@
 from knapsack.greedy import *
 from knapsack.drawer import *
+from knapsack.dynamicProgramming import *
 
 
 def main():
@@ -19,6 +20,8 @@ def main():
     screen.start()
 
     greedy_knapsack(I, 165)
+    print(dynamicProgramming_knapsack(I, 165))
+
 
     screen.join()
 

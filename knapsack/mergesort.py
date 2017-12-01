@@ -61,7 +61,6 @@ def mergesort(V):
             if parcial_left[0].dens > parcial_right[0].dens:
                 resultado.append(parcial_left.pop(0))
             else:
-                #TODO: arrumar a animação
                 anima_troca(parcial_left[0], parcial_right[0])
                 resultado.append(parcial_right.pop(0))
 
