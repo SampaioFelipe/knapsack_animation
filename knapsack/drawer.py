@@ -21,8 +21,8 @@ class Button:
     def set_primary_color(self, color):
         self.primary_color = color
 
-    def set_primary_color(self, color):
-        self.primary_color = color
+    def set_secondary_color(self, color):
+        self.secondary_color = color
 
     def draw(self, surface):
 
@@ -78,12 +78,19 @@ class Animation(threading.Thread):
 
         self.state = 0
 
+        # Definições dos botões
         BUTTON_FONT = pygame.font.SysFont('monospace', 30)
+
+        # Tela inicial
 
         text = BUTTON_FONT.render("Começar", True, WHITE)
 
         self.btn_inicial = Button((self.WIN_WIDTH // 2 - 75, self.WIN_HEIGHT // 2 + 150), (150, 50), text,
                                   BUTTON_FONT.size("Começar"))
+
+        # Tela de Configurações
+
+        # Tela de algoritmos
 
         self.current_draw = self.draw_tela_inicial
 
