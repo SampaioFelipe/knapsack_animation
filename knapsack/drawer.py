@@ -1,5 +1,8 @@
 import pygame
 import threading
+
+import sys
+
 from knapsack.definitions import *
 
 
@@ -14,12 +17,12 @@ class Animation(threading.Thread):
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
 
-        self.walle = pygame.image.load("/home/gabriela/PycharmProjects/knapsack_animation/assets/wall-e.png")
+        self.walle = pygame.image.load("assets/wall-e.png")
 
         self.WIN_WIDTH = pygame.display.Info().current_w
         self.WIN_HEIGHT = pygame.display.Info().current_h - 75
 
-        self.walle_pos = (self.WIN_WIDTH//4 - 75, 10)
+        self.walle_pos = (self.WIN_WIDTH // 4 - 75, 10)
 
         self.DISPLAY = pygame.display.set_mode((self.WIN_WIDTH, self.WIN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF)
 
@@ -42,6 +45,7 @@ class Animation(threading.Thread):
             if event.type == pygame.QUIT or (
                             event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
                 pygame.quit()
+                sys.exit()
                 return False
             elif event.type == pygame.MOUSEMOTION:
                 mousex, mousey = event.pos
@@ -70,11 +74,9 @@ class Animation(threading.Thread):
 
     def draw_item_greedy(self, item):
         pos_x, pos_y = item.get_pos()
-        pygame.draw.rect(self.greedy_surface, item.get_color(), pygame.Rect(pos_x, pos_y, item.width, item.height))
+        pygame.draw.rect(self.greedy_surface, item.get_current_color(),
+                         pygame.Rect(pos_x, pos_y, item.width, item.height))
 
         self.greedy_surface.blit(item.text_valor, (pos_x, pos_y))
         self.greedy_surface.blit(item.text_peso, (pos_x, pos_y + 15))
         self.greedy_surface.blit(item.text_densidade, (pos_x, pos_y + 30))
-
-
-

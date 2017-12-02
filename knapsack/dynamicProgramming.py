@@ -11,4 +11,5 @@ def dynamicProgramming_knapsack(Itens, C):
                 K[i][p] = max(Itens[i-1].valor + K[i-1][p-Itens[i-1].peso], K[i-1][p])
             else:
                 K[i][p] = K[i - 1][p]
+
     return K[len(Itens)][C]
