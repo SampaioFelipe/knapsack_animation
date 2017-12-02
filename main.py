@@ -5,20 +5,20 @@ from knapsack.dynamicProgramming import *
 
 def main():
 
-    I = [Item(57, 31), Item(49, 29), Item(68, 44), Item(60, 53), Item(43, 38), Item(67, 63), Item(84, 85),
-         Item(87, 89), Item(72, 82), Item(92, 23)]
+    # I = [Item(57, 31), Item(49, 29), Item(68, 44), Item(60, 53), Item(43, 38), Item(67, 63), Item(84, 85),
+    #      Item(87, 89), Item(72, 82), Item(92, 23)]
+    #
+    # i = 0
+    #
+    # for item in I:
+    #     item.set_col(i)
+    #     i = i + 1
 
-    i = 0
-
-    for item in I:
-        item.set_col(i)
-        i = i + 1
-
-    screen = Animation(I, None)
+    screen = Animation()
     screen.start()
 
-    print(greedy_knapsack(I, 165))
-    print(dynamicProgramming_knapsack(I, 165))
+    # print(greedy_knapsack(I, 165))
+    # print(dynamicProgramming_knapsack(I, 165))
 
 
     screen.join()
