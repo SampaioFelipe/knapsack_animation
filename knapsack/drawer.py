@@ -115,21 +115,22 @@ class Button:
 class Animation(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.objects_left = None
-        self.objects_right = None
 
         self.FPSCLOCK = pygame.time.Clock()
 
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
 
-        self.walle = pygame.image.load("assets/wall-e.png")
         self.logo = pygame.image.load("assets/knapsack-logo.png")
+
+        self.knapsack_grey = pygame.image.load("assets/mochila_cinza.png")
+        self.knapsack_greedy = pygame.image.load("assets/mochila_verde.png")
+        self.knapsack_dp = pygame.image.load("assets/mochila_vermelha.png")
 
         self.WIN_WIDTH = pygame.display.Info().current_w
         self.WIN_HEIGHT = pygame.display.Info().current_h - 70
 
-        self.walle_pos = (self.WIN_WIDTH // 4 - 75, 10)
+        self.knapsack_pos = (self.WIN_WIDTH // 4 - 75, 20)
 
         self.DISPLAY = pygame.display.set_mode((self.WIN_WIDTH, self.WIN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF)
 
@@ -164,7 +165,8 @@ class Animation(threading.Thread):
         self.input_active = ""
 
         # Tela de algoritmos
-
+        self.greedy_alg = []
+        self.dp_alg = []
         self.current_draw = self.draw_tela_inicial
 
     def run(self):
@@ -201,6 +203,9 @@ class Animation(threading.Thread):
                         if obj.select():
                             self.input_active = key
                             break
+                    if self.btn_iniciar_algoritmos.click():
+                        self.anima_out_menu()
+                        self.current_draw = self.draw_algoritmos
 
             elif event.type == pygame.KEYDOWN:
                 if state == 1:
@@ -215,6 +220,30 @@ class Animation(threading.Thread):
                             except Exception:
                                 pass
         return True
+
+    def anima_out_menu(self):
+        for i in range(11):
+            self.DISPLAY.fill(WHITE)
+            pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, 300 - i * 30, self.WIN_HEIGHT))
+
+            for (_, obj) in self.input_config.items():
+                obj.pos = (obj.pos[0] - 30, obj.pos[1])
+                obj.draw(self.DISPLAY)
+
+            pygame.time.delay(25)
+            pygame.display.flip()
+
+    def anima_in_menu(self):
+        for i in range(11):
+            self.DISPLAY.fill(WHITE)
+            pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, i * 30, self.WIN_HEIGHT))
+
+            for (_, obj) in self.input_config.items():
+                obj.pos = (obj.pos[0] + 30, obj.pos[1])
+                obj.draw(self.DISPLAY)
+
+            pygame.time.delay(25)
+            pygame.display.flip()
 
     def draw_tela_inicial(self):
 
@@ -238,29 +267,24 @@ class Animation(threading.Thread):
         self.btn_iniciar_algoritmos.draw(self.DISPLAY)
 
     def draw_algoritmos(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (
-                            event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
-                pygame.quit()
-                sys.exit()
+        self.event_handler(2)
 
-            elif event.type == pygame.MOUSEBUTTONUP:
-                self.mousex, self.mousey = event.pos
-                self.mouseClicked = True
+        self.DISPLAY.fill(WHITE)
 
-        self.DISPLAY.fill((0, 0, 0))
-
-        self.greedy_surface.fill((0, 0, 0))
+        self.greedy_surface.fill(WHITE)
         self.dp_surface.fill((255, 255, 255))
 
-        self.dp_surface.blit(self.walle, self.walle_pos)
-        self.greedy_surface.blit(self.walle, self.walle_pos)
+        # self.dp_surface.blit(self.knapsack_grey, (0, 0, 30, 300), (0, 0, 30, 300))
+        self.dp_surface.blit(self.knapsack_grey, self.knapsack_pos)
 
-        for obj in self.objects_left:
+        self.greedy_surface.blit(self.knapsack_grey, self.knapsack_pos)
+
+        for obj in self.greedy_alg:
             self.draw_item_greedy(obj)
 
         self.DISPLAY.blit(self.greedy_surface, (0, 0))
         self.DISPLAY.blit(self.dp_surface, (self.WIN_WIDTH // 2, 0))
+        pygame.draw.line(self.DISPLAY, BLACK, (self.WIN_WIDTH // 2, 0), (self.WIN_WIDTH // 2, self.WIN_HEIGHT), 5)
 
     def draw_item_greedy(self, item):
         pos_x, pos_y = item.get_pos()
