@@ -16,12 +16,10 @@ def main():
 
     screen = Animation()
     screen.start()
+    screen.join()
 
     # print(greedy_knapsack(I, 165))
     # print(dynamicProgramming_knapsack(I, 165))
-
-
-    screen.join()
 
 if __name__ == '__main__':
     main()

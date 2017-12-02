@@ -2,6 +2,7 @@ import threading
 import pygame
 
 pygame.font.init()
+
 FONT = pygame.font.SysFont('monospace', 14)
 
 FONT_INPUT = pygame.font.SysFont('monospace', 20)
@@ -12,7 +13,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-DELAY = 1/10
+DELAY = 1 / 10
 
 
 class Objeto:
@@ -52,15 +53,17 @@ class Item(Objeto):
         self.valor = valor
         self.peso = peso
         self.dens = valor / peso
-        self.final_color = WHITE
-        self.current_color = WHITE
+        self.final_color = (50, 50, 50)
+        self.current_color = (50, 50, 50)
 
-        self.text_valor = FONT.render("V:" + str(self.valor), False, BLUE)
-        self.text_peso = FONT.render("P:" + str(self.peso), False, BLACK)
-        self.text_densidade = FONT.render("D:{:.2f}".format(self.dens), False, RED)
+        self.text_valor = FONT.render("V:" + str(self.valor), True, BLACK)
+        self.text_peso = FONT.render("P:" + str(self.peso), True, BLACK)
+        self.text_densidade = FONT.render("D:{:.1f}".format(self.dens), True, BLACK)
+
+        self.show_text = True
 
     def get_current_color(self):
-        # TODO: Tratar cores inválidas
+
         return self.current_color
 
     def set_current_color(self, color):
@@ -95,6 +98,20 @@ class Item(Objeto):
 
     def dec_col(self):
         self.set_pos((self.x - self.fator_col, self.y))
+
+    def set_size(self, size):
+        print("setting")
+        print(size)
+        if size < 50:
+            self.show_text = False
+        else:
+            self.show_text = True
+
+        self.width = size - 5
+        self.height = size - 5
+
+        self.fator_linha = self.height + 5
+        self.fator_col = self.width + 5
 
     def __str__(self):
         return "(P: " + str(self.peso) + ", V: " + str(self.valor) + ", D: " + str(self.dens) + ")"

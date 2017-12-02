@@ -1,9 +1,9 @@
-import pygame
-import threading
-
 import sys
 
 from knapsack.definitions import *
+from random import randrange
+
+from knapsack.greedy import greedy_knapsack
 
 
 class InputBox:
@@ -74,7 +74,7 @@ class Button:
         self.text = text
         self.text_size = text_size
         self.primary_color = GREEN
-        self.secondary_color = (100, 255, 100)
+        self.secondary_color = (38, 127, 39)
 
         self.text_pos = (self.pos[0] + (self.dimen[0] - self.text_size[0]) // 2,
                          self.pos[1] + (self.dimen[1] - self.text_size[1]) // 2)
@@ -151,15 +151,21 @@ class Animation(threading.Thread):
                                   BUTTON_FONT.size("Começar"))
 
         # Tela de Configurações
-        self.input_config = {"capacidade": InputBox((15, 50), 150, "CAPACIDADE", 3),
-                             "nro_itens": InputBox((15, 150), 150, "QTD ITENS", 3),
-                             "peso_min": InputBox((15, 250), 100, "MIN PESO", 3),
-                             "peso_max": InputBox((150, 250), 100, "MAX PESO", 3),
-                             "valor_min": InputBox((15, 350), 100, "MIN VALOR", 3),
-                             "valor_max": InputBox((150, 350), 100, "MAX VALOR", 3)}
+        self.input_config = {"capacidade": InputBox((10, 50), 150, "CAPACIDADE", 3),
+                             "qtd_itens": InputBox((10, 150), 150, "QTD ITENS", 2),
+                             "peso_min": InputBox((10, 250), 100, "MIN PESO", 3),
+                             "peso_max": InputBox((135, 250), 100, "MAX PESO", 3),
+                             "valor_min": InputBox((10, 350), 100, "MIN VALOR", 3),
+                             "valor_max": InputBox((135, 350), 100, "MAX VALOR", 3)}
+
+        text = BUTTON_FONT.render("GERAR", True, WHITE)
+        self.btn_gerar_itens = Button((0, self.WIN_HEIGHT - 100), (250, 50), text,
+                                      BUTTON_FONT.size("GERAR"))
+        self.btn_gerar_itens.set_primary_color((0, 175, 204))
+        self.btn_gerar_itens.set_secondary_color((0, 109, 127))
 
         text = BUTTON_FONT.render("INICIAR", True, WHITE)
-        self.btn_iniciar_algoritmos = Button((0, self.WIN_HEIGHT - 50), (300, 50), text,
+        self.btn_iniciar_algoritmos = Button((0, self.WIN_HEIGHT - 50), (250, 50), text,
                                              BUTTON_FONT.size("INICIAR"))
 
         self.input_active = ""
@@ -178,6 +184,32 @@ class Animation(threading.Thread):
             except Exception as e:
                 print(e)
                 return
+
+    def gera_itens(self):
+        qtd = self.input_config["qtd_itens"].get_value()
+        peso_min = self.input_config["peso_min"].get_value()
+        peso_max = self.input_config["peso_max"].get_value()
+        valor_min = self.input_config["valor_min"].get_value()
+        valor_max = self.input_config["valor_max"].get_value()
+
+        itens = []
+        pos_x = 260
+        linha = 0
+
+        for i in range(qtd):
+            item = Item(randrange(valor_min, valor_max), randrange(peso_min, peso_max))
+            if pos_x >= self.WIN_WIDTH - item.width:
+                pos_x = 260
+                linha += 1
+            item.set_pos((pos_x, 0))
+            item.set_linha(linha)
+            item.y += 5
+            item.set_final_color((randrange(70, 220), randrange(70, 220), randrange(70, 220)))
+            item.restore_color()
+            itens.append(item)
+            pos_x += item.width + 5
+
+        self.greedy_alg = itens
 
     def event_handler(self, state):
 
@@ -205,7 +237,22 @@ class Animation(threading.Thread):
                             break
                     if self.btn_iniciar_algoritmos.click():
                         self.anima_out_menu()
+                        if len(self.greedy_alg) > 12:
+                            tam_cons = (self.WIN_WIDTH // 2) // len(self.greedy_alg)
+
+                            for item in self.greedy_alg:
+                                print(item)
+                                item.set_size(tam_cons)
+
+                        g = threading.Thread(target=greedy_knapsack,
+                                             kwargs={'itens': self.greedy_alg,
+                                                     'capacidade': 6,
+                                                     'dimen': (self.WIN_WIDTH // 2, self.WIN_HEIGHT)})
+                        g.start()
                         self.current_draw = self.draw_algoritmos
+
+                    if self.btn_gerar_itens.click():
+                        self.gera_itens()
 
             elif event.type == pygame.KEYDOWN:
                 if state == 1:
@@ -224,10 +271,10 @@ class Animation(threading.Thread):
     def anima_out_menu(self):
         for i in range(11):
             self.DISPLAY.fill(WHITE)
-            pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, 300 - i * 30, self.WIN_HEIGHT))
+            pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, 250 - i * 25, self.WIN_HEIGHT))
 
             for (_, obj) in self.input_config.items():
-                obj.pos = (obj.pos[0] - 30, obj.pos[1])
+                obj.pos = (obj.pos[0] - 25, obj.pos[1])
                 obj.draw(self.DISPLAY)
 
             pygame.time.delay(25)
@@ -236,10 +283,10 @@ class Animation(threading.Thread):
     def anima_in_menu(self):
         for i in range(11):
             self.DISPLAY.fill(WHITE)
-            pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, i * 30, self.WIN_HEIGHT))
+            pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, i * 25, self.WIN_HEIGHT))
 
             for (_, obj) in self.input_config.items():
-                obj.pos = (obj.pos[0] + 30, obj.pos[1])
+                obj.pos = (obj.pos[0] + 25, obj.pos[1])
                 obj.draw(self.DISPLAY)
 
             pygame.time.delay(25)
@@ -259,12 +306,16 @@ class Animation(threading.Thread):
         self.event_handler(1)
 
         self.DISPLAY.fill(WHITE)
-        pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, 300, self.WIN_HEIGHT))
+        pygame.draw.rect(self.DISPLAY, (50, 50, 50), (0, 0, 250, self.WIN_HEIGHT))
 
         for (_, obj) in self.input_config.items():
             obj.draw(self.DISPLAY)
 
+        for item in self.greedy_alg:
+            self.draw_item(item, self.DISPLAY)
+
         self.btn_iniciar_algoritmos.draw(self.DISPLAY)
+        self.btn_gerar_itens.draw(self.DISPLAY)
 
     def draw_algoritmos(self):
         self.event_handler(2)
@@ -274,23 +325,26 @@ class Animation(threading.Thread):
         self.greedy_surface.fill(WHITE)
         self.dp_surface.fill((255, 255, 255))
 
-        # self.dp_surface.blit(self.knapsack_grey, (0, 0, 30, 300), (0, 0, 30, 300))
         self.dp_surface.blit(self.knapsack_grey, self.knapsack_pos)
+
+        self.dp_surface.blit(self.knapsack_dp, (self.knapsack_pos[0], self.knapsack_pos[1] + 50, 150, 10),
+                             (0, 50, 150, 150))
 
         self.greedy_surface.blit(self.knapsack_grey, self.knapsack_pos)
 
         for obj in self.greedy_alg:
-            self.draw_item_greedy(obj)
+            self.draw_item(obj, self.greedy_surface)
 
         self.DISPLAY.blit(self.greedy_surface, (0, 0))
         self.DISPLAY.blit(self.dp_surface, (self.WIN_WIDTH // 2, 0))
         pygame.draw.line(self.DISPLAY, BLACK, (self.WIN_WIDTH // 2, 0), (self.WIN_WIDTH // 2, self.WIN_HEIGHT), 5)
 
-    def draw_item_greedy(self, item):
+    def draw_item(self, item, surface):
         pos_x, pos_y = item.get_pos()
-        pygame.draw.rect(self.greedy_surface, item.get_current_color(),
+        pygame.draw.rect(surface, item.get_current_color(),
                          pygame.Rect(pos_x, pos_y, item.width, item.height))
 
-        self.greedy_surface.blit(item.text_valor, (pos_x, pos_y))
-        self.greedy_surface.blit(item.text_peso, (pos_x, pos_y + 15))
-        self.greedy_surface.blit(item.text_densidade, (pos_x, pos_y + 30))
+        if item.show_text is True:
+            surface.blit(item.text_valor, (pos_x, pos_y))
+            surface.blit(item.text_peso, (pos_x, pos_y + 15))
+            surface.blit(item.text_densidade, (pos_x, pos_y + 30))
