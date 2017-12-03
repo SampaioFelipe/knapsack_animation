@@ -4,6 +4,7 @@ from knapsack.definitions import *
 from random import randrange
 
 from knapsack.greedy import greedy_knapsack
+from knapsack.dynamicProgramming import dynamicProgramming_knapsack
 
 
 class InputBox:
@@ -117,6 +118,7 @@ class Animation(threading.Thread):
         threading.Thread.__init__(self)
 
         self.FPSCLOCK = pygame.time.Clock()
+        self.maior = 0
 
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
@@ -186,7 +188,7 @@ class Animation(threading.Thread):
         self.greedy_thread_event = None
 
         self.dp_alg = []
-
+        self.dp_k = []
         self.current_draw = self.draw_tela_inicial
 
     def run(self):
@@ -211,6 +213,7 @@ class Animation(threading.Thread):
         valor_max = self.input_config["valor_max"].get_value()
 
         itens = []
+        itens2 = []
         pos_x = 260
         linha = 0
 
@@ -227,7 +230,22 @@ class Animation(threading.Thread):
             itens.append(item)
             pos_x += item.width + 5
 
+        for i in range(qtd):
+            item2 = Item(randrange(valor_min, valor_max), randrange(peso_min, peso_max))
+            if pos_x >= self.WIN_WIDTH - item2.width:
+                pos_x = 260
+                linha += 1
+            item2.set_pos((pos_x, 0))
+            item2.set_linha(linha)
+            item2.y += 5
+            item2.set_final_color((randrange(70, 220), randrange(70, 220), randrange(70, 220)))
+            item2.restore_color()
+            itens2.append(item2)
+            pos_x += item2.width + 5
+
         self.greedy_alg = itens
+        self.dp_alg = itens2
+        self.dp_k = [[0 for x in range(self.input_config["capacidade"].get_value() + 1)] for x in range(len(itens) + 1)]
 
     def event_handler(self, state):
 
@@ -271,6 +289,12 @@ class Animation(threading.Thread):
                                                      'dimen': (self.WIN_WIDTH // 2, self.WIN_HEIGHT),
                                                      'args': self.greedy_args,
                                                      'control': self.greedy_thread_event})
+                        dp = threading.Thread(target=dynamicProgramming_knapsack,
+                                              kwargs={'Itens': self.dp_alg,
+                                                      'K': self.dp_k,
+                                                      'C': self.input_config["capacidade"].get_value()})
+                        dp.start()
+
                         self.greedy_thread.start()
 
                         self.current_draw = self.draw_algoritmos
@@ -383,6 +407,9 @@ class Animation(threading.Thread):
 
         self.greedy_surface.blit(greedy_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
 
+        self.draw_dp(self.dp_alg, self.dp_k)
+
+
         self.DISPLAY.blit(self.greedy_surface, (0, 0))
         self.DISPLAY.blit(self.dp_surface, (self.WIN_WIDTH // 2, 0))
         pygame.draw.line(self.DISPLAY, BLACK, (self.WIN_WIDTH // 2, 0), (self.WIN_WIDTH // 2, self.WIN_HEIGHT), 5)
@@ -397,3 +424,31 @@ class Animation(threading.Thread):
             surface.blit(item.text_valor, (pos_x, pos_y))
             surface.blit(item.text_peso, (pos_x, pos_y + 15))
             surface.blit(item.text_densidade, (pos_x, pos_y + 30))
+
+    def draw_dp(self, itens, K):
+
+        pos_x = self.dp_surface.get_height()//2 - 50 * (len(K[0])+1)//2
+        pos_y = self.dp_surface.get_width()//2 - 50 * len(K)//2
+
+        for i in range(0,len(K[0])):
+            pygame.draw.rect(self.dp_surface, BLACK, pygame.Rect(pos_x + i * 55, pos_y , 50, 50))
+            if(i != 0):
+                texto = FONT.render(str(i), False, WHITE)
+                self.dp_surface.blit(texto, (pos_x + 15 + i * 55, pos_y + 15))
+
+        pos_y = pos_y + 5
+        y = 1
+        for i in itens:
+            i.set_pos((pos_x, pos_y+ 55 * y))
+            self.draw_item(i, self.dp_surface)
+            y = y+ 1
+
+        for i in range(1,len(K)):
+            for j in range(1,len(K[i])):
+                if(K[i][j] >= self.maior):
+                    pygame.draw.rect(self.dp_surface, RED, pygame.Rect(pos_x + j * 55, pos_y + i*55, 50, 50))
+                    self.maior = K[i][j]
+                else:
+                    pygame.draw.rect(self.dp_surface, BLUE, pygame.Rect(pos_x + j * 55, pos_y + i * 55, 50, 50))
+                texto = FONT.render(str(K[i][j]), False, WHITE)
+                self.dp_surface.blit(texto, (pos_x + 15+ j *55, pos_y+15 + i * 55))
