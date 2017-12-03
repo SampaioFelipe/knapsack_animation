@@ -119,6 +119,7 @@ class Animation(threading.Thread):
 
         self.FPSCLOCK = pygame.time.Clock()
         self.maior = 0
+        self.peso_dp = 99
 
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
@@ -385,8 +386,18 @@ class Animation(threading.Thread):
 
         self.dp_surface.blit(self.knapsack_grey, self.knapsack_pos)
 
-        # self.dp_surface.blit(self.knapsack_dp, (self.knapsack_pos[0], self.knapsack_pos[1], 150, 10),
-        #                      (0, pos, 150, 150))
+        pos = (self.peso_dp * 165) // self.input_config["capacidade"].get_value()
+
+        self.dp_surface.blit(self.knapsack_grey, (self.knapsack_pos[0], self.knapsack_pos[1]- pos, 150, 10),
+                             (0, -pos, 150, 150))
+        dp_text_valor = BUTTON_FONT.render("$" + str(self.maior).zfill(2), True, GREEN)
+
+        self.dp_surface.blit(dp_text_valor, (self.knapsack_pos[0] + 40, self.knapsack_pos[1] + 200))
+
+        dp_text_capacidade = BUTTON_FONT.render(
+            str(self.peso_dp).zfill(2) + "/" + str(self.greedy_capacidade).zfill(2), True, GREEN)
+
+        self.dp_surface.blit(dp_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
 
         for obj in self.greedy_alg:
             self.draw_item(obj, self.greedy_surface)
@@ -394,6 +405,7 @@ class Animation(threading.Thread):
         self.greedy_surface.blit(self.knapsack_greedy, self.knapsack_pos)
 
         pos = (self.greedy_args['peso_corrente'] * 165) // self.greedy_capacidade
+
 
         self.greedy_surface.blit(self.knapsack_grey, (self.knapsack_pos[0], self.knapsack_pos[1] - pos, 150, 10),
                                  (0, -pos, 150, 165))
@@ -426,29 +438,54 @@ class Animation(threading.Thread):
             surface.blit(item.text_densidade, (pos_x, pos_y + 30))
 
     def draw_dp(self, itens, K):
+        tamanho_quadrado = 50
 
-        pos_x = self.dp_surface.get_height()//2 - 50 * (len(K[0])+1)//2
-        pos_y = self.dp_surface.get_width()//2 - 50 * len(K)//2
+        posicao = 15
+
+        if (len(K[0]) > 10):
+            tamanho_quadrado = self.dp_surface.get_width() // (len(K[0])+4)
+            posicao = 0
+        if(len(itens) > 8):
+            tamanho_quadrado = self.dp_surface.get_height()//(len(itens)+20)
+            posicao = 0
+        pos_x = self.dp_surface.get_height()//2 - tamanho_quadrado * (len(K[0])+2)//2
+        pos_y = self.dp_surface.get_width()//2 - 90
 
         for i in range(0,len(K[0])):
-            pygame.draw.rect(self.dp_surface, BLACK, pygame.Rect(pos_x + i * 55, pos_y , 50, 50))
+            pygame.draw.rect(self.dp_surface, BLACK, pygame.Rect(pos_x + i * (tamanho_quadrado + tamanho_quadrado//10), pos_y, tamanho_quadrado, tamanho_quadrado))
             if(i != 0):
                 texto = FONT.render(str(i), False, WHITE)
-                self.dp_surface.blit(texto, (pos_x + 15 + i * 55, pos_y + 15))
+                self.dp_surface.blit(texto, (pos_x + posicao + i * (tamanho_quadrado + (tamanho_quadrado//10)), pos_y + posicao))
 
         pos_y = pos_y + 5
         y = 1
         for i in itens:
-            i.set_pos((pos_x, pos_y+ 55 * y))
+            i.height = tamanho_quadrado
+            i.width = tamanho_quadrado
+            if(tamanho_quadrado < 50):
+                i.show_text = False
+            i.set_pos((pos_x, pos_y + y*(tamanho_quadrado + (tamanho_quadrado//10))))
             self.draw_item(i, self.dp_surface)
             y = y+ 1
 
         for i in range(1,len(K)):
             for j in range(1,len(K[i])):
+                if (K[i][j] > self.maior):
+                    self.peso_dp = j
                 if(K[i][j] >= self.maior):
-                    pygame.draw.rect(self.dp_surface, RED, pygame.Rect(pos_x + j * 55, pos_y + i*55, 50, 50))
                     self.maior = K[i][j]
+                    pygame.draw.rect(self.dp_surface, RED,
+                                     pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                 pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                 tamanho_quadrado, tamanho_quadrado))
+
+                    if(j <= self.peso_dp):
+                        pygame.draw.rect(self.dp_surface, GREEN,
+                                         pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     tamanho_quadrado, tamanho_quadrado))
+                        self.peso_dp = j
                 else:
-                    pygame.draw.rect(self.dp_surface, BLUE, pygame.Rect(pos_x + j * 55, pos_y + i * 55, 50, 50))
+                    pygame.draw.rect(self.dp_surface, BLUE, pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado//10), pos_y + i * (tamanho_quadrado + tamanho_quadrado//10), tamanho_quadrado, tamanho_quadrado))
                 texto = FONT.render(str(K[i][j]), False, WHITE)
-                self.dp_surface.blit(texto, (pos_x + 15+ j *55, pos_y+15 + i * 55))
+                self.dp_surface.blit(texto, (pos_x + posicao + j * (tamanho_quadrado + (tamanho_quadrado//10)), pos_y+posicao + i * (tamanho_quadrado + (tamanho_quadrado//10))))

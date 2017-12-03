@@ -13,6 +13,8 @@ def dynamicProgramming_knapsack(Itens, K, C):
 
             else:
                 K[i][p] = K[i - 1][p]
+
+            print(K[i][p])
             time.sleep(DELAY*2)
 
     return K
