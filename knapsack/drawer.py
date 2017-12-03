@@ -384,7 +384,7 @@ class Animation(threading.Thread):
         self.greedy_surface.fill(WHITE)
         self.dp_surface.fill((255, 255, 255))
 
-        self.dp_surface.blit(self.knapsack_grey, self.knapsack_pos)
+        self.dp_surface.blit(self.knapsack_dp, self.knapsack_pos)
 
         pos = (self.peso_dp * 165) // self.input_config["capacidade"].get_value()
 
