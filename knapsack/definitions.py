@@ -54,7 +54,12 @@ class Item(Objeto):
 
         self.valor = valor
         self.peso = peso
-        self.dens = valor / peso
+
+        if peso > 0:
+            self.dens = valor / peso
+        else:
+            self.dens = 0
+
         self.final_color = (50, 50, 50)
         self.current_color = (50, 50, 50)
 

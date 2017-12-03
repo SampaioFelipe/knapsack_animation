@@ -8,16 +8,29 @@ from knapsack.dynamicProgramming import dynamicProgramming_knapsack
 
 
 class InputBox:
-    def __init__(self, pos, width, label, limit):
+    def __init__(self, pos, width, label, limit, valor_limite = None):
         self.pos = pos
         self.dimen = width, 40
         self.label = FONT_INPUT.render(label, True, WHITE)
 
         self.text = ""
 
+        self.valid = True
+
         self.limit = limit
 
+        self.valor_limite = valor_limite
+
         self.selected = False
+
+    def set_valid(self):
+        self.valid = True
+
+    def set_invalid(self):
+        self.valid = False
+
+    def is_valid(self):
+        return self.valid
 
     def add_digito(self, letra):
         if self.limit > 0:
@@ -43,7 +56,10 @@ class InputBox:
         if self.selected:
             pygame.draw.rect(surface, GREEN, (self.pos + self.dimen), 2)
         else:
-            pygame.draw.rect(surface, WHITE, (self.pos + self.dimen), 2)
+            if self.valid:
+                pygame.draw.rect(surface, WHITE, (self.pos + self.dimen), 2)
+            else:
+                pygame.draw.rect(surface, RED, (self.pos + self.dimen), 2)
 
         surface.blit(text, (self.pos[0] + 10, self.pos[1] + 12))
 
@@ -66,6 +82,14 @@ class InputBox:
 
     def deselect(self):
         self.selected = False
+
+        if self.valor_limite is not None:
+            if self.get_value() > self.valor_limite:
+                self.set_invalid()
+            else:
+                self.set_valid()
+        else:
+            self.set_valid()
 
 
 class Button:
@@ -159,8 +183,8 @@ class Animation(threading.Thread):
                                   BUTTON_FONT.size("COMEÇAR"))
 
         # Tela de Configurações
-        self.input_config = {"capacidade": InputBox((10, 50), 150, "CAPACIDADE", 3),
-                             "qtd_itens": InputBox((10, 150), 150, "QTD ITENS", 2),
+        self.input_config = {"capacidade": InputBox((10, 50), 150, "CAPACIDADE", 2, 40),
+                             "qtd_itens": InputBox((10, 150), 150, "QTD ITENS", 2, 30),
                              "peso_min": InputBox((10, 250), 100, "MIN PESO", 3),
                              "peso_max": InputBox((135, 250), 100, "MAX PESO", 3),
                              "valor_min": InputBox((10, 350), 100, "MIN VALOR", 3),
@@ -251,6 +275,25 @@ class Animation(threading.Thread):
         self.dp_k = [[0 for x in range(self.input_config["capacidade"].get_value() + 1)] for x in
                      range(len(self.dp_alg) + 1)]
 
+    def valida_inputs(self):
+        if self.input_config["capacidade"].is_valid() and self.input_config["capacidade"].get_value() > 0:
+            if self.input_config["qtd_itens"].is_valid() and self.input_config["qtd_itens"].get_value() > 0:
+                if self.input_config["peso_min"].get_value() < self.input_config["peso_max"].get_value():
+                    if self.input_config["valor_min"].get_value() < self.input_config["valor_max"].get_value():
+                        return True
+                    else:
+                        self.input_config["valor_min"].set_invalid()
+                        self.input_config["valor_max"].set_invalid()
+                else:
+                    self.input_config["peso_min"].set_invalid()
+                    self.input_config["peso_max"].set_invalid()
+            else:
+                self.input_config["qtd_itens"].set_invalid()
+        else:
+            self.input_config["capacidade"].set_invalid()
+
+        return False
+
     def event_handler(self, state):
 
         for event in pygame.event.get():
@@ -277,35 +320,39 @@ class Animation(threading.Thread):
                             self.input_active = key
                             break
                     if self.btn_iniciar_algoritmos.click():
-                        self.anima_out_menu()
-                        if len(self.greedy_alg) > 12:
-                            tam_cons = (self.WIN_WIDTH // 2) // len(self.greedy_alg)
+                        if len(self.greedy_alg) > 0:
 
-                            for item in self.greedy_alg:
-                                print(item)
-                                item.set_size(tam_cons)
+                            self.anima_out_menu()
 
-                        self.greedy_thread_event = threading.Event()
+                            if len(self.greedy_alg) > 12:
+                                tam_cons = (self.WIN_WIDTH // 2) // len(self.greedy_alg)
 
-                        self.greedy_thread = threading.Thread(target=greedy_knapsack,
-                                                              kwargs={'itens': self.greedy_alg,
-                                                                      'capacidade': self.greedy_capacidade,
-                                                                      'dimen': (self.WIN_WIDTH // 2, self.WIN_HEIGHT),
-                                                                      'args': self.greedy_args,
-                                                                      'control': self.greedy_thread_event})
+                                for item in self.greedy_alg:
+                                    item.set_size(tam_cons)
 
-                        dp = threading.Thread(target=dynamicProgramming_knapsack,
-                                              kwargs={'Itens': self.dp_alg,
-                                                      'K': self.dp_k,
-                                                      'C': self.input_config["capacidade"].get_value()})
-                        dp.start()
+                            self.greedy_thread_event = threading.Event()
 
-                        self.greedy_thread.start()
+                            self.greedy_thread = threading.Thread(target=greedy_knapsack,
+                                                                  kwargs={'itens': self.greedy_alg,
+                                                                          'capacidade': self.greedy_capacidade,
+                                                                          'dimen': (
+                                                                              self.WIN_WIDTH // 2, self.WIN_HEIGHT),
+                                                                          'args': self.greedy_args,
+                                                                          'control': self.greedy_thread_event})
 
-                        self.current_draw = self.draw_algoritmos
+                            dp = threading.Thread(target=dynamicProgramming_knapsack,
+                                                  kwargs={'Itens': self.dp_alg,
+                                                          'K': self.dp_k,
+                                                          'C': self.input_config["capacidade"].get_value()})
+                            dp.start()
+
+                            self.greedy_thread.start()
+
+                            self.current_draw = self.draw_algoritmos
 
                     if self.btn_gerar_itens.click():
-                        self.gera_itens()
+                        if self.valida_inputs():
+                            self.gera_itens()
 
                 elif state == 2:
                     if self.btn_voltar.click():
@@ -360,7 +407,6 @@ class Animation(threading.Thread):
             pygame.display.flip()
 
     def draw_tela_inicial(self):
-
         self.event_handler(0)
 
         self.DISPLAY.fill(WHITE)

@@ -15,5 +15,4 @@ def dynamicProgramming_knapsack(Itens, K, C):
 
             time.sleep(DELAY)
 
-    print("PD", K[-1][-1])
     return K
