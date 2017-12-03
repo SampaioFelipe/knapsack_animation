@@ -118,8 +118,9 @@ class Animation(threading.Thread):
         threading.Thread.__init__(self)
 
         self.FPSCLOCK = pygame.time.Clock()
+
         self.maior = 0
-        self.peso_dp = 99
+        self.peso_dp = 0
 
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
@@ -203,6 +204,10 @@ class Animation(threading.Thread):
                 return
 
     def gera_itens(self):
+        self.greedy_alg = []
+        self.dp_alg = []
+        self.dp_k = []
+
         self.greedy_args = {'valor_total': 0, 'peso_corrente': 0}
 
         self.greedy_capacidade = self.input_config["capacidade"].get_value()
@@ -213,40 +218,38 @@ class Animation(threading.Thread):
         valor_min = self.input_config["valor_min"].get_value()
         valor_max = self.input_config["valor_max"].get_value()
 
-        itens = []
-        itens2 = []
+        for i in range(qtd):
+            valor = randrange(valor_min, valor_max)
+            peso = randrange(peso_min, peso_max)
+            color = (randrange(70, 220), randrange(70, 220), randrange(70, 220))
+
+            item_greedy = Item(valor, peso)
+            item_dp = Item(valor, peso)
+
+            item_greedy.set_final_color(color)
+            item_greedy.restore_color()
+
+            item_dp.set_final_color(color)
+            item_dp.restore_color()
+
+            self.greedy_alg.append(item_greedy)
+            self.dp_alg.append(item_dp)
+
         pos_x = 260
         linha = 0
 
-        for i in range(qtd):
-            item = Item(randrange(valor_min, valor_max), randrange(peso_min, peso_max))
+        for item in self.greedy_alg:
+
             if pos_x >= self.WIN_WIDTH - item.width:
                 pos_x = 260
                 linha += 1
             item.set_pos((pos_x, 0))
             item.set_linha(linha)
             item.y += 5
-            item.set_final_color((randrange(70, 220), randrange(70, 220), randrange(70, 220)))
-            item.restore_color()
-            itens.append(item)
             pos_x += item.width + 5
 
-        for i in range(qtd):
-            item2 = Item(randrange(valor_min, valor_max), randrange(peso_min, peso_max))
-            if pos_x >= self.WIN_WIDTH - item2.width:
-                pos_x = 260
-                linha += 1
-            item2.set_pos((pos_x, 0))
-            item2.set_linha(linha)
-            item2.y += 5
-            item2.set_final_color((randrange(70, 220), randrange(70, 220), randrange(70, 220)))
-            item2.restore_color()
-            itens2.append(item2)
-            pos_x += item2.width + 5
-
-        self.greedy_alg = itens
-        self.dp_alg = itens2
-        self.dp_k = [[0 for x in range(self.input_config["capacidade"].get_value() + 1)] for x in range(len(itens) + 1)]
+        self.dp_k = [[0 for x in range(self.input_config["capacidade"].get_value() + 1)] for x in
+                     range(len(self.dp_alg) + 1)]
 
     def event_handler(self, state):
 
@@ -285,11 +288,12 @@ class Animation(threading.Thread):
                         self.greedy_thread_event = threading.Event()
 
                         self.greedy_thread = threading.Thread(target=greedy_knapsack,
-                                             kwargs={'itens': self.greedy_alg,
-                                                     'capacidade': self.greedy_capacidade,
-                                                     'dimen': (self.WIN_WIDTH // 2, self.WIN_HEIGHT),
-                                                     'args': self.greedy_args,
-                                                     'control': self.greedy_thread_event})
+                                                              kwargs={'itens': self.greedy_alg,
+                                                                      'capacidade': self.greedy_capacidade,
+                                                                      'dimen': (self.WIN_WIDTH // 2, self.WIN_HEIGHT),
+                                                                      'args': self.greedy_args,
+                                                                      'control': self.greedy_thread_event})
+
                         dp = threading.Thread(target=dynamicProgramming_knapsack,
                                               kwargs={'Itens': self.dp_alg,
                                                       'K': self.dp_k,
@@ -309,6 +313,10 @@ class Animation(threading.Thread):
                         self.greedy_alg = []
 
                         self.dp_alg = []
+                        self.dp_k = []
+                        self.maior = 0
+                        self.peso_dp = 0
+
                         self.anima_in_menu()
 
                         self.current_draw = self.draw_tela_configuracao
@@ -377,27 +385,12 @@ class Animation(threading.Thread):
         self.btn_gerar_itens.draw(self.DISPLAY)
 
     def draw_algoritmos(self):
+
         self.event_handler(2)
 
         self.DISPLAY.fill(WHITE)
-
+        # Greedy
         self.greedy_surface.fill(WHITE)
-        self.dp_surface.fill((255, 255, 255))
-
-        self.dp_surface.blit(self.knapsack_dp, self.knapsack_pos)
-
-        pos = (self.peso_dp * 165) // self.input_config["capacidade"].get_value()
-
-        self.dp_surface.blit(self.knapsack_grey, (self.knapsack_pos[0], self.knapsack_pos[1]- pos, 150, 10),
-                             (0, -pos, 150, 150))
-        dp_text_valor = BUTTON_FONT.render("$" + str(self.maior).zfill(2), True, GREEN)
-
-        self.dp_surface.blit(dp_text_valor, (self.knapsack_pos[0] + 40, self.knapsack_pos[1] + 200))
-
-        dp_text_capacidade = BUTTON_FONT.render(
-            str(self.peso_dp).zfill(2) + "/" + str(self.greedy_capacidade).zfill(2), True, GREEN)
-
-        self.dp_surface.blit(dp_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
 
         for obj in self.greedy_alg:
             self.draw_item(obj, self.greedy_surface)
@@ -405,8 +398,6 @@ class Animation(threading.Thread):
         self.greedy_surface.blit(self.knapsack_greedy, self.knapsack_pos)
 
         pos = (self.greedy_args['peso_corrente'] * 165) // self.greedy_capacidade
-
-
         self.greedy_surface.blit(self.knapsack_grey, (self.knapsack_pos[0], self.knapsack_pos[1] - pos, 150, 10),
                                  (0, -pos, 150, 165))
 
@@ -419,11 +410,33 @@ class Animation(threading.Thread):
 
         self.greedy_surface.blit(greedy_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
 
-        self.draw_dp(self.dp_alg, self.dp_k)
-
-
         self.DISPLAY.blit(self.greedy_surface, (0, 0))
+
+        # Fim greedy
+
+        # DP
+        self.dp_surface.fill(WHITE)
+
+        self.dp_surface.blit(self.knapsack_dp, self.knapsack_pos)
+
+        pos = (self.peso_dp * 165) // self.input_config["capacidade"].get_value()
+        self.dp_surface.blit(self.knapsack_grey, (self.knapsack_pos[0], self.knapsack_pos[1] - pos, 150, 10),
+                             (0, -pos, 150, 165))
+
+        dp_text_valor = BUTTON_FONT.render("$" + str(self.maior).zfill(2), True, GREEN)
+
+        self.dp_surface.blit(dp_text_valor, (self.knapsack_pos[0] + 40, self.knapsack_pos[1] + 200))
+
+        dp_text_capacidade = BUTTON_FONT.render(str(self.peso_dp).zfill(2) + "/" + str(self.greedy_capacidade).zfill(2),
+                                                True, GREEN)
+        self.dp_surface.blit(dp_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
+
+        if len(self.dp_alg) > 0:
+            self.draw_dp(self.dp_alg, self.dp_k)
+
         self.DISPLAY.blit(self.dp_surface, (self.WIN_WIDTH // 2, 0))
+        # Fim dp
+
         pygame.draw.line(self.DISPLAY, BLACK, (self.WIN_WIDTH // 2, 0), (self.WIN_WIDTH // 2, self.WIN_HEIGHT), 5)
         self.btn_voltar.draw(self.DISPLAY)
 
@@ -443,49 +456,57 @@ class Animation(threading.Thread):
         posicao = 15
 
         if (len(K[0]) > 10):
-            tamanho_quadrado = self.dp_surface.get_width() // (len(K[0])+4)
+            tamanho_quadrado = self.dp_surface.get_width() // (len(K[0]) + 4)
             posicao = 0
-        if(len(itens) > 8):
-            tamanho_quadrado = self.dp_surface.get_height()//(len(itens)+20)
+        if (len(itens) > 8):
+            tamanho_quadrado = self.dp_surface.get_height() // (len(itens) + 20)
             posicao = 0
-        pos_x = self.dp_surface.get_height()//2 - tamanho_quadrado * (len(K[0])+2)//2
-        pos_y = self.dp_surface.get_width()//2 - 90
 
-        for i in range(0,len(K[0])):
-            pygame.draw.rect(self.dp_surface, BLACK, pygame.Rect(pos_x + i * (tamanho_quadrado + tamanho_quadrado//10), pos_y, tamanho_quadrado, tamanho_quadrado))
-            if(i != 0):
+        pos_x = self.dp_surface.get_height() // 2 - tamanho_quadrado * (len(K[0]) + 2) // 2
+        pos_y = self.dp_surface.get_width() // 2 - 90
+
+        for i in range(0, len(K[0])):
+            pygame.draw.rect(self.dp_surface, BLACK,
+                             pygame.Rect(pos_x + i * (tamanho_quadrado + tamanho_quadrado // 10), pos_y,
+                                         tamanho_quadrado, tamanho_quadrado))
+            if (i != 0):
                 texto = FONT.render(str(i), False, WHITE)
-                self.dp_surface.blit(texto, (pos_x + posicao + i * (tamanho_quadrado + (tamanho_quadrado//10)), pos_y + posicao))
+                self.dp_surface.blit(texto, (
+                    pos_x + posicao + i * (tamanho_quadrado + (tamanho_quadrado // 10)), pos_y + posicao))
 
         pos_y = pos_y + 5
         y = 1
         for i in itens:
             i.height = tamanho_quadrado
             i.width = tamanho_quadrado
-            if(tamanho_quadrado < 50):
+            if (tamanho_quadrado < 50):
                 i.show_text = False
-            i.set_pos((pos_x, pos_y + y*(tamanho_quadrado + (tamanho_quadrado//10))))
+            i.set_pos((pos_x, pos_y + y * (tamanho_quadrado + (tamanho_quadrado // 10))))
             self.draw_item(i, self.dp_surface)
-            y = y+ 1
+            y = y + 1
 
-        for i in range(1,len(K)):
-            for j in range(1,len(K[i])):
+        for i in range(1, len(K)):
+            for j in range(1, len(K[i])):
                 if (K[i][j] > self.maior):
                     self.peso_dp = j
-                if(K[i][j] >= self.maior):
+                if (K[i][j] >= self.maior):
                     self.maior = K[i][j]
                     pygame.draw.rect(self.dp_surface, RED,
                                      pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                  pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                  tamanho_quadrado, tamanho_quadrado))
 
-                    if(j <= self.peso_dp):
+                    if (j <= self.peso_dp):
                         pygame.draw.rect(self.dp_surface, GREEN,
                                          pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      tamanho_quadrado, tamanho_quadrado))
                         self.peso_dp = j
                 else:
-                    pygame.draw.rect(self.dp_surface, BLUE, pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado//10), pos_y + i * (tamanho_quadrado + tamanho_quadrado//10), tamanho_quadrado, tamanho_quadrado))
+                    pygame.draw.rect(self.dp_surface, BLUE,
+                                     pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                 pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                 tamanho_quadrado, tamanho_quadrado))
                 texto = FONT.render(str(K[i][j]), False, WHITE)
-                self.dp_surface.blit(texto, (pos_x + posicao + j * (tamanho_quadrado + (tamanho_quadrado//10)), pos_y+posicao + i * (tamanho_quadrado + (tamanho_quadrado//10))))
+                self.dp_surface.blit(texto, (pos_x + posicao + j * (tamanho_quadrado + (tamanho_quadrado // 10)),
+                                             pos_y + posicao + i * (tamanho_quadrado + (tamanho_quadrado // 10))))
