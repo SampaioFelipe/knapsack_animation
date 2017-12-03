@@ -143,8 +143,9 @@ class Animation(threading.Thread):
 
         self.FPSCLOCK = pygame.time.Clock()
 
-        self.maior = 0
+        self.maior = -1
         self.peso_dp = 0
+        self.dp_arg = [0,0]
 
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
@@ -349,7 +350,8 @@ class Animation(threading.Thread):
                                                   kwargs={'itens': self.dp_alg,
                                                           'k': self.dp_k,
                                                           'c': self.input_config["capacidade"].get_value(),
-                                                          'control': self.thread_event})
+                                                          'control': self.thread_event,
+                                                          'arg': self.dp_arg})
                             dp.start()
 
                             self.greedy_thread.start()
@@ -512,10 +514,13 @@ class Animation(threading.Thread):
 
         posicao = 15
 
-        if (len(K[0]) > 10):
-            tamanho_quadrado = self.dp_surface.get_width() // (len(K[0]) + 4)
+        tamanho = False
+        if(len(K[0]) > len(itens)):
+            tamanho = True
+        if (len(K[0]) > 10 and tamanho):
+            tamanho_quadrado = self.dp_surface.get_width() // (len(K[0]) + 10)
             posicao = 0
-        if (len(itens) > 8):
+        elif (len(itens) > 7):
             tamanho_quadrado = self.dp_surface.get_height() // (len(itens) + 20)
             posicao = 0
 
@@ -546,21 +551,32 @@ class Animation(threading.Thread):
             for j in range(1, len(K[i])):
                 if (K[i][j] > self.maior):
                     self.peso_dp = j
-                if (K[i][j] >= self.maior):
                     self.maior = K[i][j]
+                if (K[i][j] >= self.maior):
                     pygame.draw.rect(self.dp_surface, RED,
                                      pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                  pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                  tamanho_quadrado, tamanho_quadrado))
 
-                    if (j <= self.peso_dp):
+                    if (j <= self.peso_dp and K[i][j] !=0):
                         pygame.draw.rect(self.dp_surface, GREEN,
                                          pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      tamanho_quadrado, tamanho_quadrado))
                         self.peso_dp = j
-                else:
-                    pygame.draw.rect(self.dp_surface, BLUE,
+                if(K[i][j] < self.maior or K[i][j]==0):
+                    if(i<self.dp_arg[0]):
+                        pygame.draw.rect(self.dp_surface, GREY,
+                                         pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     tamanho_quadrado, tamanho_quadrado))
+                    elif(i<=self.dp_arg[0] and j<=self.dp_arg[1]):
+                        pygame.draw.rect(self.dp_surface, GREY,
+                                         pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     tamanho_quadrado, tamanho_quadrado))
+                    else:
+                        pygame.draw.rect(self.dp_surface, BLUE,
                                      pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                  pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                  tamanho_quadrado, tamanho_quadrado))

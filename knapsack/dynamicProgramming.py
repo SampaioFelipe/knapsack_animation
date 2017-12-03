@@ -4,7 +4,7 @@ from knapsack.definitions import DELAY
 import time
 
 
-def dynamicProgramming_knapsack(itens, k, c, control):
+def dynamicProgramming_knapsack(itens, k, c, control, arg):
 
     for i in range(len(itens) + 1):
         for p in range(c + 1):
@@ -19,6 +19,9 @@ def dynamicProgramming_knapsack(itens, k, c, control):
 
             else:
                 k[i][p] = k[i - 1][p]
+
+            arg[0] = i
+            arg[1] = p
 
             time.sleep(DELAY)
 
