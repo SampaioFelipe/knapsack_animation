@@ -174,7 +174,6 @@ class Animation(threading.Thread):
         self.state = 0
 
         # Definições dos itens de menu
-
         # Tela inicial
 
         text = BUTTON_FONT.render("COMEÇAR", True, WHITE)
@@ -209,10 +208,15 @@ class Animation(threading.Thread):
         self.input_active = ""
 
         # Tela de algoritmos
+
+        self.greedy_titulo = FONT_INPUT.render("Algoritmo Guloso", True, BLACK, BLACK)
+
         self.greedy_alg = []
         self.greedy_thread = None
-        self.greedy_thread_event = None
 
+        self.thread_event = None
+
+        self.dp_titulo = FONT_INPUT.render("Programação Dinâmica", True, BLACK)
         self.dp_alg = []
         self.dp_k = []
         self.current_draw = self.draw_tela_inicial
@@ -299,9 +303,9 @@ class Animation(threading.Thread):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (
                             event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
+                self.thread_event.set()
                 pygame.quit()
-
-                sys.exit()
+                sys.exit(0)
 
             elif event.type == pygame.MOUSEBUTTONUP:
 
@@ -320,6 +324,7 @@ class Animation(threading.Thread):
                             self.input_active = key
                             break
                     if self.btn_iniciar_algoritmos.click():
+
                         if len(self.greedy_alg) > 0:
 
                             self.anima_out_menu()
@@ -330,7 +335,7 @@ class Animation(threading.Thread):
                                 for item in self.greedy_alg:
                                     item.set_size(tam_cons)
 
-                            self.greedy_thread_event = threading.Event()
+                            self.thread_event = threading.Event()
 
                             self.greedy_thread = threading.Thread(target=greedy_knapsack,
                                                                   kwargs={'itens': self.greedy_alg,
@@ -338,12 +343,13 @@ class Animation(threading.Thread):
                                                                           'dimen': (
                                                                               self.WIN_WIDTH // 2, self.WIN_HEIGHT),
                                                                           'args': self.greedy_args,
-                                                                          'control': self.greedy_thread_event})
+                                                                          'control': self.thread_event})
 
                             dp = threading.Thread(target=dynamicProgramming_knapsack,
-                                                  kwargs={'Itens': self.dp_alg,
-                                                          'K': self.dp_k,
-                                                          'C': self.input_config["capacidade"].get_value()})
+                                                  kwargs={'itens': self.dp_alg,
+                                                          'k': self.dp_k,
+                                                          'c': self.input_config["capacidade"].get_value(),
+                                                          'control': self.thread_event})
                             dp.start()
 
                             self.greedy_thread.start()
@@ -356,7 +362,8 @@ class Animation(threading.Thread):
 
                 elif state == 2:
                     if self.btn_voltar.click():
-                        self.greedy_thread_event.set()
+                        self.thread_event.set()
+
                         self.greedy_alg = []
 
                         self.dp_alg = []
@@ -455,6 +462,8 @@ class Animation(threading.Thread):
             str(self.greedy_args['peso_corrente']).zfill(2) + "/" + str(self.greedy_capacidade).zfill(2), True, GREEN)
 
         self.greedy_surface.blit(greedy_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
+
+        self.greedy_surface.blit(self.greedy_titulo, (5,10))
 
         self.DISPLAY.blit(self.greedy_surface, (0, 0))
 

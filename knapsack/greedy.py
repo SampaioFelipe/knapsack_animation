@@ -1,3 +1,5 @@
+import sys
+
 from knapsack.mergesort import mergesort
 from knapsack.definitions import DELAY, RED
 import time
@@ -61,7 +63,7 @@ def greedy_knapsack(itens, capacidade, dimen, args, control):
     for item in ordenado:
 
         if control.is_set():
-            return
+            sys.exit(0)
 
         pos = item.get_pos()
         anima_escolha(item, dimen)

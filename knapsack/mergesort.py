@@ -1,4 +1,7 @@
 import time
+
+import sys
+
 from knapsack.definitions import *
 
 def anima_escolhe(item, col):
@@ -25,6 +28,7 @@ def anima_comparacao(item1, item2):
 
 
 def mergesort(itens, control):
+
     tamanho = len(itens)
 
     if tamanho < 2:
@@ -40,6 +44,9 @@ def mergesort(itens, control):
         cur_col = parcial_left[0].get_col()
 
         while (len(parcial_left) > 0) and (len(parcial_right) > 0):
+
+            if control.is_set():
+                sys.exit(0)
 
             anima_comparacao(parcial_left[0], parcial_right[0])
 

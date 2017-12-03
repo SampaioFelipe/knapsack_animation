@@ -1,18 +1,27 @@
+import sys
+
 from knapsack.definitions import DELAY
 import time
 
 
-def dynamicProgramming_knapsack(Itens, K, C):
-    for i in range(len(Itens) + 1):
-        for p in range(C + 1):
+def dynamicProgramming_knapsack(itens, k, c, control):
+
+    for i in range(len(itens) + 1):
+        for p in range(c + 1):
+
+            if control.is_set():
+                sys.exit(0)
+
+            print(p)
+
             if i == 0 or p == 0:
-                K[i][p] = 0
-            elif Itens[i - 1].peso <= p:
-                K[i][p] = max(Itens[i - 1].valor + K[i - 1][p - Itens[i - 1].peso], K[i - 1][p])
+                k[i][p] = 0
+            elif itens[i - 1].peso <= p:
+                k[i][p] = max(itens[i - 1].valor + k[i - 1][p - itens[i - 1].peso], k[i - 1][p])
 
             else:
-                K[i][p] = K[i - 1][p]
+                k[i][p] = k[i - 1][p]
 
             time.sleep(DELAY)
 
-    return K
+    return k
