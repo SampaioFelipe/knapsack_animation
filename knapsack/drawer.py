@@ -137,10 +137,8 @@ class Button:
         return False
 
 
-class Animation(threading.Thread):
+class Animation():
     def __init__(self):
-        threading.Thread.__init__(self)
-
         self.FPSCLOCK = pygame.time.Clock()
 
         self.maior = -1

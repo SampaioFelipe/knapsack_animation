@@ -1,4 +1,8 @@
 import cx_Freeze
+import os
+
+os.environ['TCL_LIBRARY'] = r"C:\Python\Python36\tcl\tcl8.6"
+os.environ['TK_LIBRARY'] = r"C:\Python\Python36\tcl\tcl8.6"
 
 exes = [cx_Freeze.Executable("main.py")]
 
