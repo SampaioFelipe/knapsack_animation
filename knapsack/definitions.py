@@ -107,8 +107,6 @@ class Item(Objeto):
         self.set_pos((self.x - self.fator_col, self.y))
 
     def set_size(self, size):
-        print("setting")
-        print(size)
         if size < 50:
             self.show_text = False
         else:

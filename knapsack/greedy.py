@@ -23,10 +23,12 @@ def anima_escolha(item, dimen):
 
         time.sleep(DELAY / 50)
 
+    item.set_size(60)
+
     item.x = (dimen[0] // 2) - item.width // 2
     item.y = dimen[1] // 2
 
-    time.sleep(1)
+    time.sleep(2)
 
 
 def anima_aceita(item):
@@ -35,8 +37,9 @@ def anima_aceita(item):
         time.sleep(DELAY / 50)
 
 
-def anima_recusa(item, pos):
+def anima_recusa(item, pos, size):
     item.current_color = RED
+    item.set_size(size)
 
     inc_x = (pos[0] - item.x) // 100
     inc_y = (pos[1] - item.y) // 100
@@ -46,7 +49,6 @@ def anima_recusa(item, pos):
         item.y += inc_y
 
         time.sleep(DELAY / 50)
-
     item.x = pos[0]
     item.y = pos[1]
 
@@ -59,6 +61,8 @@ def greedy_knapsack(itens, capacidade, dimen, args, control):
     ordenado = mergesort(itens, control)
 
     itens = []
+
+    size = ordenado[0].width + 5
 
     for item in ordenado:
 
@@ -76,6 +80,6 @@ def greedy_knapsack(itens, capacidade, dimen, args, control):
             if args['peso_corrente'] == capacidade:
                 return itens, args['valor_total']
         else:
-            anima_recusa(item, pos)
+            anima_recusa(item, pos, size)
 
     return itens, args['valor_total']

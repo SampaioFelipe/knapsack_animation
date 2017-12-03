@@ -12,8 +12,6 @@ def dynamicProgramming_knapsack(itens, k, c, control):
             if control.is_set():
                 sys.exit(0)
 
-            print(p)
-
             if i == 0 or p == 0:
                 k[i][p] = 0
             elif itens[i - 1].peso <= p:

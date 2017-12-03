@@ -8,7 +8,7 @@ from knapsack.dynamicProgramming import dynamicProgramming_knapsack
 
 
 class InputBox:
-    def __init__(self, pos, width, label, limit, valor_limite = None):
+    def __init__(self, pos, width, label, limit, valor_limite=None):
         self.pos = pos
         self.dimen = width, 40
         self.label = FONT_INPUT.render(label, True, WHITE)
@@ -209,14 +209,14 @@ class Animation(threading.Thread):
 
         # Tela de algoritmos
 
-        self.greedy_titulo = FONT_INPUT.render("Algoritmo Guloso", True, BLACK, BLACK)
+        self.greedy_titulo = FONT_INPUT.render("Algoritmo Guloso", True, WHITE, BLACK)
 
         self.greedy_alg = []
         self.greedy_thread = None
 
         self.thread_event = None
 
-        self.dp_titulo = FONT_INPUT.render("Programação Dinâmica", True, BLACK)
+        self.dp_titulo = FONT_INPUT.render("Programação Dinâmica", True, WHITE, BLACK)
         self.dp_alg = []
         self.dp_k = []
         self.current_draw = self.draw_tela_inicial
@@ -463,7 +463,7 @@ class Animation(threading.Thread):
 
         self.greedy_surface.blit(greedy_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
 
-        self.greedy_surface.blit(self.greedy_titulo, (5,10))
+        self.greedy_surface.blit(self.greedy_titulo, (5, 10))
 
         self.DISPLAY.blit(self.greedy_surface, (0, 0))
 
@@ -488,6 +488,8 @@ class Animation(threading.Thread):
 
         if len(self.dp_alg) > 0:
             self.draw_dp(self.dp_alg, self.dp_k)
+
+        self.dp_surface.blit(self.dp_titulo, (5, 10))
 
         self.DISPLAY.blit(self.dp_surface, (self.WIN_WIDTH // 2, 0))
         # Fim dp
