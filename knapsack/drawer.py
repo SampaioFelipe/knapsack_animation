@@ -121,6 +121,7 @@ class Animation(threading.Thread):
         threading.Thread.__init__(self)
 
         self.FPSCLOCK = pygame.time.Clock()
+        self.maior = 0
 
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
@@ -389,17 +390,17 @@ class Animation(threading.Thread):
                 self.dp_surface.blit(texto, (pos_x + 15 + i * 55, pos_y + 15))
 
         pos_y = pos_y + 5
-        x = 1
+        y = 1
         for i in itens:
-            i.set_pos((pos_x, pos_y+ 55 * x))
+            i.set_pos((pos_x, pos_y+ 55 * y))
             self.draw_item(i, self.dp_surface)
-            x = x + 1
-        maior = 0
+            y = y+ 1
+
         for i in range(1,len(K)):
             for j in range(1,len(K[i])):
-                if(K[i][j] >= maior):
+                if(K[i][j] >= self.maior):
                     pygame.draw.rect(self.dp_surface, RED, pygame.Rect(pos_x + j * 55, pos_y + i*55, 50, 50))
-                    maior = K[i][j]
+                    self.maior = K[i][j]
                 else:
                     pygame.draw.rect(self.dp_surface, BLUE, pygame.Rect(pos_x + j * 55, pos_y + i * 55, 50, 50))
                 texto = FONT.render(str(K[i][j]), False, WHITE)
