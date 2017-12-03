@@ -124,7 +124,12 @@ class Animation(threading.Thread):
         self.logo = pygame.image.load("assets/knapsack-logo.png")
 
         self.knapsack_grey = pygame.image.load("assets/mochila_cinza.png")
+
+        # Greedy
         self.knapsack_greedy = pygame.image.load("assets/mochila_verde.png")
+        self.greedy_capacidade = 0
+        self.greedy_args = None
+
         self.knapsack_dp = pygame.image.load("assets/mochila_vermelha.png")
 
         self.WIN_WIDTH = pygame.display.Info().current_w
@@ -141,14 +146,13 @@ class Animation(threading.Thread):
         self.state = 0
 
         # Definições dos itens de menu
-        BUTTON_FONT = pygame.font.SysFont('monospace', 30)
 
         # Tela inicial
 
-        text = BUTTON_FONT.render("Começar", True, WHITE)
+        text = BUTTON_FONT.render("COMEÇAR", True, WHITE)
 
         self.btn_inicial = Button((self.WIN_WIDTH // 2 - 75, self.WIN_HEIGHT // 2 + 150), (150, 50), text,
-                                  BUTTON_FONT.size("Começar"))
+                                  BUTTON_FONT.size("COMEÇAR"))
 
         # Tela de Configurações
         self.input_config = {"capacidade": InputBox((10, 50), 150, "CAPACIDADE", 3),
@@ -168,11 +172,21 @@ class Animation(threading.Thread):
         self.btn_iniciar_algoritmos = Button((0, self.WIN_HEIGHT - 50), (250, 50), text,
                                              BUTTON_FONT.size("INICIAR"))
 
+        text = BUTTON_FONT.render("VOLTAR", True, WHITE)
+        self.btn_voltar = Button((self.WIN_WIDTH // 2 - 60, self.WIN_HEIGHT - 70), (120, 50), text,
+                                 BUTTON_FONT.size("VOLTAR"))
+        self.btn_voltar.set_primary_color(RED)
+        self.btn_voltar.set_secondary_color((200, 50, 50))
+
         self.input_active = ""
 
         # Tela de algoritmos
         self.greedy_alg = []
+        self.greedy_thread = None
+        self.greedy_thread_event = None
+
         self.dp_alg = []
+
         self.current_draw = self.draw_tela_inicial
 
     def run(self):
@@ -186,6 +200,10 @@ class Animation(threading.Thread):
                 return
 
     def gera_itens(self):
+        self.greedy_args = {'valor_total': 0, 'peso_corrente': 0}
+
+        self.greedy_capacidade = self.input_config["capacidade"].get_value()
+
         qtd = self.input_config["qtd_itens"].get_value()
         peso_min = self.input_config["peso_min"].get_value()
         peso_max = self.input_config["peso_max"].get_value()
@@ -217,6 +235,7 @@ class Animation(threading.Thread):
             if event.type == pygame.QUIT or (
                             event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
                 pygame.quit()
+
                 sys.exit()
 
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -244,15 +263,30 @@ class Animation(threading.Thread):
                                 print(item)
                                 item.set_size(tam_cons)
 
-                        g = threading.Thread(target=greedy_knapsack,
+                        self.greedy_thread_event = threading.Event()
+
+                        self.greedy_thread = threading.Thread(target=greedy_knapsack,
                                              kwargs={'itens': self.greedy_alg,
-                                                     'capacidade': 6,
-                                                     'dimen': (self.WIN_WIDTH // 2, self.WIN_HEIGHT)})
-                        g.start()
+                                                     'capacidade': self.greedy_capacidade,
+                                                     'dimen': (self.WIN_WIDTH // 2, self.WIN_HEIGHT),
+                                                     'args': self.greedy_args,
+                                                     'control': self.greedy_thread_event})
+                        self.greedy_thread.start()
+
                         self.current_draw = self.draw_algoritmos
 
                     if self.btn_gerar_itens.click():
                         self.gera_itens()
+
+                elif state == 2:
+                    if self.btn_voltar.click():
+                        self.greedy_thread_event.set()
+                        self.greedy_alg = []
+
+                        self.dp_alg = []
+                        self.anima_in_menu()
+
+                        self.current_draw = self.draw_tela_configuracao
 
             elif event.type == pygame.KEYDOWN:
                 if state == 1:
@@ -327,17 +361,32 @@ class Animation(threading.Thread):
 
         self.dp_surface.blit(self.knapsack_grey, self.knapsack_pos)
 
-        self.dp_surface.blit(self.knapsack_dp, (self.knapsack_pos[0], self.knapsack_pos[1] + 50, 150, 10),
-                             (0, 50, 150, 150))
-
-        self.greedy_surface.blit(self.knapsack_grey, self.knapsack_pos)
+        # self.dp_surface.blit(self.knapsack_dp, (self.knapsack_pos[0], self.knapsack_pos[1], 150, 10),
+        #                      (0, pos, 150, 150))
 
         for obj in self.greedy_alg:
             self.draw_item(obj, self.greedy_surface)
 
+        self.greedy_surface.blit(self.knapsack_greedy, self.knapsack_pos)
+
+        pos = (self.greedy_args['peso_corrente'] * 165) // self.greedy_capacidade
+
+        self.greedy_surface.blit(self.knapsack_grey, (self.knapsack_pos[0], self.knapsack_pos[1] - pos, 150, 10),
+                                 (0, -pos, 150, 165))
+
+        greedy_text_valor = BUTTON_FONT.render("$" + str(self.greedy_args['valor_total']).zfill(2), True, GREEN)
+
+        self.greedy_surface.blit(greedy_text_valor, (self.knapsack_pos[0] + 40, self.knapsack_pos[1] + 200))
+
+        greedy_text_capacidade = BUTTON_FONT.render(
+            str(self.greedy_args['peso_corrente']).zfill(2) + "/" + str(self.greedy_capacidade).zfill(2), True, GREEN)
+
+        self.greedy_surface.blit(greedy_text_capacidade, (self.knapsack_pos[0] + 240, self.knapsack_pos[1] + 60))
+
         self.DISPLAY.blit(self.greedy_surface, (0, 0))
         self.DISPLAY.blit(self.dp_surface, (self.WIN_WIDTH // 2, 0))
         pygame.draw.line(self.DISPLAY, BLACK, (self.WIN_WIDTH // 2, 0), (self.WIN_WIDTH // 2, self.WIN_HEIGHT), 5)
+        self.btn_voltar.draw(self.DISPLAY)
 
     def draw_item(self, item, surface):
         pos_x, pos_y = item.get_pos()

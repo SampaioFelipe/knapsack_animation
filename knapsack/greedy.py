@@ -1,5 +1,5 @@
 from knapsack.mergesort import mergesort
-from knapsack.definitions import DELAY
+from knapsack.definitions import DELAY, RED
 import time
 
 
@@ -19,41 +19,61 @@ def anima_escolha(item, dimen):
         item.x += inc_x
         item.y += inc_y
 
-        time.sleep(DELAY/50)
+        time.sleep(DELAY / 50)
 
-    item.x = dimen[0] // 2
+    item.x = (dimen[0] // 2) - item.width // 2
     item.y = dimen[1] // 2
 
     time.sleep(1)
 
+
 def anima_aceita(item):
-    while item.y < 100 // 2:
+    while item.y > 100:
         item.y -= 1
+        time.sleep(DELAY / 50)
 
-        time.sleep(DELAY/50)
+
+def anima_recusa(item, pos):
+    item.current_color = RED
+
+    inc_x = (pos[0] - item.x) // 100
+    inc_y = (pos[1] - item.y) // 100
+
+    while item.y < pos[1]:
+        item.x += inc_x
+        item.y += inc_y
+
+        time.sleep(DELAY / 50)
+
+    item.x = pos[0]
+    item.y = pos[1]
+
+    time.sleep(1)
 
 
-def greedy_knapsack(itens, capacidade, dimen):
+def greedy_knapsack(itens, capacidade, dimen, args, control):
     anima_preparacao(itens, dimen)
 
-    ordenado = mergesort(itens)
+    ordenado = mergesort(itens, control)
 
-    peso_total = ordenado[0].peso
-    valor_total = ordenado[0].valor
+    itens = []
 
-    itens = [ordenado[0]]
+    for item in ordenado:
 
-    for item in ordenado[1:]:
+        if control.is_set():
+            return
+
+        pos = item.get_pos()
         anima_escolha(item, dimen)
-        ordenado.pop(0)
-        if (peso_total + item.peso) <= capacidade:
+
+        if (args['peso_corrente'] + item.peso) <= capacidade:
             anima_aceita(item)
-            valor_total = valor_total + item.valor
-            peso_total = peso_total + item.peso
+            args['valor_total'] = args['valor_total'] + item.valor
+            args['peso_corrente'] = args['peso_corrente'] + item.peso
             itens.append(item)
-            if peso_total == capacidade:
-                return itens, valor_total
-        # else:
+            if args['peso_corrente'] == capacidade:
+                return itens, args['valor_total']
+        else:
+            anima_recusa(item, pos)
 
-
-    return itens, valor_total
+    return itens, args['valor_total']

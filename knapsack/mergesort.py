@@ -24,7 +24,7 @@ def anima_comparacao(item1, item2):
     time.sleep(DELAY)
 
 
-def mergesort(itens):
+def mergesort(itens, control):
     tamanho = len(itens)
 
     if tamanho < 2:
@@ -32,8 +32,8 @@ def mergesort(itens):
 
     else:
 
-        parcial_left = mergesort(itens[:tamanho // 2])
-        parcial_right = mergesort(itens[tamanho // 2:])
+        parcial_left = mergesort(itens[:tamanho // 2], control)
+        parcial_right = mergesort(itens[tamanho // 2:], control)
 
         resultado = []
 

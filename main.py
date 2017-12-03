@@ -16,7 +16,7 @@ def main():
 
     screen = Animation()
     screen.start()
-    screen.join()
+    # screen.join()
 
     # print(greedy_knapsack(I, 165))
     # print(dynamicProgramming_knapsack(I, 165))
