@@ -143,7 +143,7 @@ class Animation():
 
         self.maior = -1
         self.peso_dp = 0
-        self.dp_arg = [0,0]
+        self.dp_arg = [0, 0]
 
         pygame.init()
         pygame.display.set_caption('Knapsack Problem')
@@ -159,12 +159,13 @@ class Animation():
 
         self.knapsack_dp = pygame.image.load("assets/mochila_vermelha.png")
 
-        self.WIN_WIDTH = pygame.display.Info().current_w
-        self.WIN_HEIGHT = pygame.display.Info().current_h - 70
+        self.WIN_WIDTH = 1366
+        self.WIN_HEIGHT = 768
 
         self.knapsack_pos = (self.WIN_WIDTH // 4 - 75, 20)
 
-        self.DISPLAY = pygame.display.set_mode((self.WIN_WIDTH, self.WIN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF)
+        self.DISPLAY = pygame.display.set_mode((self.WIN_WIDTH, self.WIN_HEIGHT),
+                                               pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.FULLSCREEN)
 
         self.greedy_surface = pygame.Surface((self.WIN_WIDTH // 2, self.WIN_HEIGHT))
 
@@ -513,7 +514,7 @@ class Animation():
         posicao = 15
 
         tamanho = False
-        if(len(K[0]) > len(itens)):
+        if (len(K[0]) > len(itens)):
             tamanho = True
         if (len(K[0]) > 10 and tamanho):
             tamanho_quadrado = self.dp_surface.get_width() // (len(K[0]) + 10)
@@ -556,28 +557,28 @@ class Animation():
                                                  pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                  tamanho_quadrado, tamanho_quadrado))
 
-                    if (j <= self.peso_dp and K[i][j] !=0):
+                    if (j <= self.peso_dp and K[i][j] != 0):
                         pygame.draw.rect(self.dp_surface, GREEN,
                                          pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      tamanho_quadrado, tamanho_quadrado))
                         self.peso_dp = j
-                if(K[i][j] < self.maior or K[i][j]==0):
-                    if(i<self.dp_arg[0]):
+                if (K[i][j] < self.maior or K[i][j] == 0):
+                    if (i < self.dp_arg[0]):
                         pygame.draw.rect(self.dp_surface, GREY,
                                          pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      tamanho_quadrado, tamanho_quadrado))
-                    elif(i<=self.dp_arg[0] and j<=self.dp_arg[1]):
+                    elif (i <= self.dp_arg[0] and j <= self.dp_arg[1]):
                         pygame.draw.rect(self.dp_surface, GREY,
                                          pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
                                                      tamanho_quadrado, tamanho_quadrado))
                     else:
                         pygame.draw.rect(self.dp_surface, BLUE,
-                                     pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
-                                                 pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
-                                                 tamanho_quadrado, tamanho_quadrado))
+                                         pygame.Rect(pos_x + j * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     pos_y + i * (tamanho_quadrado + tamanho_quadrado // 10),
+                                                     tamanho_quadrado, tamanho_quadrado))
                 texto = FONT.render(str(K[i][j]), False, WHITE)
                 self.dp_surface.blit(texto, (pos_x + posicao + j * (tamanho_quadrado + (tamanho_quadrado // 10)),
                                              pos_y + posicao + i * (tamanho_quadrado + (tamanho_quadrado // 10))))
